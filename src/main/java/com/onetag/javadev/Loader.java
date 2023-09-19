@@ -7,24 +7,32 @@ import java.io.IOException;
 import java.util.*;
 
 
+/**
+ * Classe loader che legge i dati dai file csv e li carica in una HashMap
+ */
 public class Loader {
     private String F_PATH = "src/main/resources/oscar_age_female.csv";
     private String M_PATH = "src/main/resources/oscar_age_male.csv";
 
-    HashMap<String, Winner> awards = new HashMap<>();
-    List<Winner> winners = new ArrayList<>();
+    HashMap<String, Winner> awards = new HashMap<>(); // HashMap che contiene tutti i dati dei vincitori
+    List<Winner> winners = new ArrayList<>(); // ArrayList che contiene i vincitori con piu di 1 oscar trovati durante la lettura dei file
 
     public Loader() {
         run();
     }
 
+    /*
+     * legge i dati dai file csv e li carica in una HashMap
+     * */
     public HashMap<String, Winner> run() {
-        HashMap<String, Winner> awards = new HashMap<>();
         readAwards(F_PATH);
         readAwards(M_PATH);
         return awards;
     }
 
+    /*
+     * legge i dati da un file csv e li carica in una HashMap
+     * */
     private void readAwards(String path) {
         try {
             File file = new File(path);
@@ -32,16 +40,18 @@ public class Loader {
             String line;
             reader.readLine(); // skip the first line
             while ((line = reader.readLine()) != null) {
-                Winner newWinner = getWinner(line);
+                Winner newWinner = extractWinner(line);
                 if (newWinner != null) {
                     if (this.awards.containsKey(newWinner.getName())) {
-                        // update the winner
+                        // winner gia presente nella HashMap, aggiorno i dati del vincitore nella HashMap
                         Winner winner = this.awards.get(newWinner.getName());
                         winner.update(newWinner.getYears().get(0), newWinner.getMovies().get(0), newWinner.getAge());
+                        // se il vincitore ha piu di 1 oscar e non e gia presente nella lista dei vincitori con piu di 1 oscar lo aggiungo
                         if (winner.getYears().size() > 1 && !this.winners.contains(winner)) {
                             this.winners.add(winner);
                         }
                     } else {
+                        // winner non presente nella HashMap, lo aggiungo
                         this.awards.put(newWinner.getName(), newWinner);
                     }
                 }
@@ -52,7 +62,10 @@ public class Loader {
         }
     }
 
-    private Winner getWinner(String line) {
+    /*
+     * estrae i dati di un vincitore da una stringa
+     * */
+    private Winner extractWinner(String line) {
         String[] parts = line.split(",");
         if (parts.length == 5) {
             int year = Integer.parseInt(removeQuotes(parts[1].trim()));
@@ -70,24 +83,20 @@ public class Loader {
     }
 
 
-
-
-    // sort function that sort elements of arraylist by numWins value and for same numWins value sort by age
+    /*
+     * ordina la lista vincitori con piu di oscar in base al numero di oscar, all'eta attuale e all'anno della prima vittoria
+     * */
     public List<Winner> getWinners() {
-        // sort the winners list by numWins value
         Collections.sort(this.winners, (w1, w2) -> {
-            // Confronto per la variabile nuwin
             int result = Integer.compare(w2.getNumWins(), w1.getNumWins());
-
-            // Se le variabili nuwin sono uguali, confronto per la variabile age
             if (result == 0) {
                 result = Integer.compare(w1.getActualAge(), w2.getActualAge());
             }
-
+            // ordino in base all'anno della prima vittoria perchè usando un arraylist winners con i vincitori con piu di 1 oscar
+            // l'ordine per i pari eta era stabilito in base all'ordine di inserimento nella lista, quindi l'ultima vittoria
+            // e non su chi ha vinto per primo come nel file csv, il test non funzionava per gli attori "Jack Nicholson" e "Dustin Hoffman"
             if (result == 0) {
                 result = Integer.compare(w1.getYears().get(0), w2.getYears().get(0));
-                // fatto perche usando un array winners inserisco i vincitori in ordine di ultima vincita e usciva un
-                // ordine diverso dal test ma non era specificato nel readme
             }
 
             return result;

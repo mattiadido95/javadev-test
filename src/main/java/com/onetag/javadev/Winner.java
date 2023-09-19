@@ -2,6 +2,9 @@ package com.onetag.javadev;
 
 import java.util.ArrayList;
 
+/**
+ * Classe winner che contiene i dati di un vincitore caricati dal file csv
+ */
 public class Winner {
     private ArrayList<Integer> years = new ArrayList<>();
     private int age;
@@ -19,6 +22,9 @@ public class Winner {
         this.actualAge = 2023 - year + age;
     }
 
+    /*
+    * aggiorna i dati di un vincitore gia presente nella HashMap
+    * */
     public void update(int year, String movie, int age) {
         this.years.add(year);
         this.movies.add(movie);
